@@ -3,7 +3,6 @@
 %
 % params: J, K = 20, lambda_max = 10, x2 = 2
 function [t, lambda_min] = tJ(J, K = 20, lambda_max = 10, x2 = 2)
-  lambda_max
   lambda_min = lambda_max / K;
   t_min = x2 / lambda_max;
   t_max = x2 / lambda_min;
@@ -41,20 +40,30 @@ endfunction
 % Calculate the wavelet coefficients for the function f
 %
 % params: f, T
-function w = W(f, T)
-  TT = cell2mat(T');
-  w = TT * f;
+function w = W(f, T, singlevec = false)
+  if (singlevec)
+    TT = cell2mat(T');
+    w = TT * f;
+  else
+    for i = 1:size(T, 2)
+      w{i} = T{i}*f;
+    endfor
+  endif
 endfunction
 
 %%
 % Reconstruct the function again from the wavelet coefficients and the given T
 %
 % params: w, T
-function f = iW(w, T)
+function f = iW(w, T, singlevec = false)
   TT = cell2mat(T');
   pL = (TT'*TT)^(-1)*TT';
-  ww = cell2mat(w(:));
-  f = pL * ww;
+  if (singlevec)
+    f = pL * w;
+  else
+    ww = cell2mat(w(:));
+    f = pL * ww;
+  endif
 endfunction
 
 %%%%%%% scaling function

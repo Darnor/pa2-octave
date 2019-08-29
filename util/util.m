@@ -13,3 +13,11 @@ endfunction
 function r = any_match(A, value)
   r = any(any(A == value) == 1);
 endfunction
+
+function v = to_vector(A, l, b)
+  for i = 1:b
+    for j = 1:l
+      v((i-1)*l+j, 1) = A(i,j);
+    endfor
+  endfor
+endfunction

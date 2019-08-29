@@ -24,7 +24,7 @@ function scatter_matrix(A)
 endfunction
 
 function plot_matrix(A, style_fn)
-  [M, N] = size(A)
+  [M, N] = size(A);
   [xx, yy] = meshgrid([0:N-1], [0:M-1]);
   style_fn(xx, yy, A);
 endfunction
@@ -70,16 +70,20 @@ function ch = chimatrix(chi, l, b)
   endfor
 endfunction
 
-function cc = sphere_matrix(A, l, b)
-  cc = [repelem(A(1), l+1)'; chimatrix(A, l, b); repelem(A(size(A, 1)), l+1)'];
-endfunction
-
-function cc = rectangle_matrix(A, l, b)
+function cc = to_matrix(v, l, b)
   for i = 1:b
     for j = 1:l
-      cc(i,j) = A((i-1)*l+j);
+      cc(i,j) = v((i-1)*l+j);
     endfor
   endfor
+endfunction
+
+function mesh_rectangle_vector(v, l, b)
+  mesh_matrix(to_matrix(v, l, b));
+endfunction
+
+function cc = sphere_matrix(A, l, b)
+  cc = [repelem(A(1), l+1)'; chimatrix(A, l, b); repelem(A(size(A, 1)), l+1)'];
 endfunction
 
 function surf_sphere(chi, l, b, grid = false)
