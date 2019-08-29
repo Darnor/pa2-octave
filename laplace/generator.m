@@ -21,12 +21,7 @@ function [L, D, A] = laplace_icosahedron(norm = false)
   0,0,1,1,0,0,0,1,1,0,1,0;...
   ];
 
-  if (norm)
-    sqD = D^(-1/2);
-    L = eye(N) - sqD * A * sqD;
-  else
-    L = D - A;
-  endif
+  L = laplace_matrix(D, A, norm);
 endfunction
 
 %%
@@ -62,17 +57,12 @@ function [L, D, A] = laplace_1D(N, connected, norm = false)
     D(1, 1) = 1;
     D(N, N) = 1;
   endif
-  A = symetric_diagonal(N, 1, 1);
+  A = symetric_band_matrix(N, 1, 1);
   if (connected)
     A(1, N) = 1;
     A(N, 1) = 1;
   endif
-  if (norm)
-    sqD = D^(-1/2);
-    L = eye(N) - sqD * A * sqD;
-  else
-    L = D - A;
-  endif
+  L = laplace_matrix(D, A, norm);
 endfunction
 
 %%
@@ -82,9 +72,9 @@ endfunction
 % value the value to set
 % offset offset from the diagonal
 %
-% create a symetric diagonal band matrix containing the value
+% create a symetric band matrix containing the value
 % with a specified offset
-function A = symetric_diagonal(N, value, offset)
+function A = symetric_band_matrix(N, value, offset)
   values = value * ones(N-offset, 1);
   A = diag(values, offset) + diag(values, -offset);
 endfunction
@@ -107,10 +97,10 @@ function [L, D, A] = laplace_sphere_grid(l, b, norm = false)
   endif
   D(1, 1) = l;
   D(N, N) = l;
-  A = symetric_diagonal(N, 1, 1);
+  A = symetric_band_matrix(N, 1, 1);
 
   if (l > 1)
-    A += symetric_diagonal(N, l, 1);
+    A += symetric_band_matrix(N, l, 1);
 
     for i = 2:l
       A(1, i) = 1;
@@ -130,6 +120,97 @@ function [L, D, A] = laplace_sphere_grid(l, b, norm = false)
     endfor
   endif
 
+  L = laplace_matrix(D, A, norm);
+endfunction
+
+%%
+% params: A, a, b, value
+function A = symetric_set(A, a, b, value)
+  A(a, b) = value;
+  A(b, a) = value;
+endfunction
+
+%%
+% params: l, b, norm = false
+%
+% l = | longitude, laengengrad |
+% b = | latitude, breitengrad |
+% create a laplace matrix representing a sphere.
+function [L, D, A] = laplace_eight_point(l, b, norm = false)
+  N = l*b;
+
+  if (l == 1 || b == 1)
+    [L, D, A] = laplace_line(N, norm);
+    return;
+  endif
+
+  % Degree matrix inner points
+  D = 8 * eye(N);
+
+  % Degree matrix corner points
+  D(1, 1) = 3;
+  D(l, l) = 3;
+  D(l*(b-1)+1, l*(b-1)+1) = 3;
+  D(l*b, l*b) = 3;
+
+  % Degree matrix border points
+  % Top and bottom border
+  for k = 2:l-1
+    D(k, k) = 5;
+    D(l*(b-1) + k, l*(b-1) + k) = 5;
+  endfor
+
+  % Left and right border
+  for k = 1:b-2
+    D(k*l+1, k*l+1) = 5;
+    D((k+1)*l, (k+1)*l) = 5;
+  endfor
+
+  % connect right neighbor
+  A = symetric_band_matrix(N, 1, 1);
+  % connect bottom neighbor
+  A += symetric_band_matrix(N, 1, l);
+
+  if (l - 1 > 1)
+    % connect bottom-left neighbor
+    A += symetric_band_matrix(N, 1, l - 1);
+  endif
+  % connect bottom-right neighbor
+  A += symetric_band_matrix(N, 1, l + 1);
+
+  if (l-1 > 1)
+    for k = 1:b
+      right = k*l;
+
+      % remove excessive bottom connections
+      A(right, (k-1)*l+1) = 0;
+      A((k-1)*l+1, right) = 0;
+    endfor  
+
+    for k = 1:b-1
+      right = k*l;
+      % remove excessive right connections
+      A(right, right+1) = 0;
+      A(right+1, right) = 0;
+    endfor
+  endif
+
+  for k = 1:b-2
+    right = k*l;
+    % remove excessive bottom-right connections
+    A(right, right+l+1) = 0;
+    A(right+l+1, right) = 0;
+  endfor
+
+  L = laplace_matrix(D, A, norm);
+endfunction
+
+%%
+% params: D, A, norm = false
+%
+% Generate the laplace matrix from a given degree matrix and
+% a given adjacency matrix. Normalize if needed.
+function L = laplace_matrix(D, A, norm = false)
   if (norm)
     sqD = D^(-1/2);
     L = eye(N) - sqD * A * sqD;
@@ -138,3 +219,21 @@ function [L, D, A] = laplace_sphere_grid(l, b, norm = false)
   endif
 endfunction
 
+%%
+% params: A
+%
+% A is the adjacency matrix for which the degree matrix
+% will be generated
+function D = degree_matrix_from_adjacency(A)
+  [rows, columns] = size(A);
+
+  d = zeros(rows, 1);
+
+  for i = 1:rows
+    for j = 1:columns
+      d(i) += A(i,j);
+    endfor
+  endfor
+
+  D = diag(d);
+endfunction

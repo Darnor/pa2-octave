@@ -1,3 +1,6 @@
+%% set graphic toolkit
+graphics_toolkit fltk
+
 %% Helpers
 % plot psi wavelets as mesh
 %
@@ -21,10 +24,8 @@ function scatter_matrix(A)
 endfunction
 
 function plot_matrix(A, style_fn)
-  [M, N] = size(A);
-  x = linspace(0, 2*pi, N);
-  y = linspace(0, 2*pi, M);
-  [xx, yy] = meshgrid(x, y);
+  [M, N] = size(A)
+  [xx, yy] = meshgrid([0:N-1], [0:M-1]);
   style_fn(xx, yy, A);
 endfunction
 
@@ -71,6 +72,14 @@ endfunction
 
 function cc = sphere_matrix(A, l, b)
   cc = [repelem(A(1), l+1)'; chimatrix(A, l, b); repelem(A(size(A, 1)), l+1)'];
+endfunction
+
+function cc = rectangle_matrix(A, l, b)
+  for i = 1:b
+    for j = 1:l
+      cc(i,j) = A((i-1)*l+j);
+    endfor
+  endfor
 endfunction
 
 function surf_sphere(chi, l, b, grid = false)

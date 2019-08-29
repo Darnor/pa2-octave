@@ -1,19 +1,15 @@
 %%
-% function functions
-function delta = dirac_delta(x)
-  for k=1:size(x,2)
-    if (x(k) < 1e-16 && x(k) > -1e-16)
-      delta(k) = 1;
-    else
-      delta(k) = 0;
-    endif
-  endfor
-  delta = delta';
+% params: A, value
+%
+% Check if all values in A match the value
+function r = all_match(A, value)
+  r = 1 && all(A == value);
 endfunction
 
-function r = periodic_fun(N)
-  x = linspace(0, 2*pi, N);
-  r = 10 + sin(x) + 2 * cos(10 * x);
-  r = r';
+%%
+% params: A, value
+%
+% Check if all values in A match the value
+function r = any_match(A, value)
+  r = any(any(A == value) == 1);
 endfunction
-
