@@ -31,13 +31,26 @@ function im = compute_windowed_wavelet_transform(image, l, b, T)
   N = y / b;
   M = x / l;
 
+  for i = 1:N
+    for j = 1:M
+      ww = W(to_vector(image((i-1)*b+1:i*b, (j-1)*l+1:j*l), l, b), T);
+      for k = 1:size(T, 2)
+        R{k} = to_matrix(ww{k}, l, b);
+      endfor
+      Q{j} = R;
+    endfor
+    for k = 1:size(T, 2)
+      for j = 1:M
+        S{j} = Q{j}{k};
+      endfor
+      P{k} = cell2mat(S);
+    endfor
+    K{i} = P;
+  endfor
   for k = 1:size(T, 2)
     for i = 1:N
-      for j = 1:M
-        Q{j} = to_matrix(W(to_vector(image((i-1)*b+1:i*b, (j-1)*l+1:j*l), l, b), T){k}, l, b);
-      endfor
-      K{i} = cell2mat(Q);
+      O{i} = K{i}{k};
     endfor
-    im{k} = cell2mat(K');
+    im{k} = cell2mat(O');
   endfor
 endfunction
