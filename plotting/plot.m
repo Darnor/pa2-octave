@@ -1,3 +1,5 @@
+source("util/util.m")
+
 %% set graphic toolkit
 graphics_toolkit fltk
 
@@ -66,14 +68,6 @@ function ch = chimatrix(chi, l, b)
     k += l;
     for j = 1:l+1
       ch(i-1, j) = m(j);
-    endfor
-  endfor
-endfunction
-
-function cc = to_matrix(v, l, b)
-  for i = 1:b
-    for j = 1:l
-      cc(i,j) = v((i-1)*l+j);
     endfor
   endfor
 endfunction

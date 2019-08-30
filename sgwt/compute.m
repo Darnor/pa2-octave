@@ -20,3 +20,24 @@ function d = compute_wavelet_diff(C1, C2, l, b, x0, y0, T)
     d{i} = w1{i}-w2{i};
   endfor
 endfunction
+
+%%
+% params: image, l, b, T
+%
+% Compute a windowed wavelet transform of the input image
+function im = compute_windowed_wavelet_transform(image, l, b, T)
+  [y, x] = size(image);
+
+  N = y / b;
+  M = x / l;
+
+  for k = 1:size(T, 2)
+    for i = 1:N
+      for j = 1:M
+        Q{j} = to_matrix(W(to_vector(image((i-1)*b+1:i*b, (j-1)*l+1:j*l), l, b), T){k}, l, b);
+      endfor
+      K{i} = cell2mat(Q);
+    endfor
+    im{k} = cell2mat(K');
+  endfor
+endfunction

@@ -21,3 +21,11 @@ function v = to_vector(A, l, b)
     endfor
   endfor
 endfunction
+
+function A = to_matrix(v, l, b)
+  for i = 1:b
+    for j = 1:l
+      A(i,j) = v((i-1)*l+j);
+    endfor
+  endfor
+endfunction
