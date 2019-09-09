@@ -56,14 +56,22 @@ endfunction
 %
 % params: w, T
 function f = iW(w, T, singlevec = false)
-  TT = cell2mat(T');
-  pL = (TT'*TT)^(-1)*TT';
+  pL = psuedo_inverse(T)
   if (singlevec)
     f = pL * w;
   else
     ww = cell2mat(w(:));
     f = pL * ww;
   endif
+endfunction
+
+%%
+% Create the pseudo inverse of the cell matrix T
+% 
+% params: T
+function pL = psuedo_inverse(T)
+  TT = cell2mat(T');
+  pL = (TT'*TT)^(-1)*TT';
 endfunction
 
 %%%%%%% scaling function
