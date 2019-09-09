@@ -16,9 +16,14 @@ function mesh_wavelet_phi(h, L)
 endfunction
 
 %%
-% params: A, figure_id
+% params: A
 function mesh_matrix(A)
   plot_matrix(A, @mesh);
+endfunction
+
+function surf_matrix(A)
+  plot_matrix(A, @surf);
+  shading interp;
 endfunction
 
 function scatter_matrix(A)
