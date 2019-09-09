@@ -237,3 +237,16 @@ function D = degree_matrix_from_adjacency(A)
 
   D = diag(d);
 endfunction
+
+%%
+% params: ind, distance_fn, norm = false 
+function L = laplace_from_indexes(ind, distance_fn, norm = false)
+  A(1,1) = 0;
+  for i = 1:size(ind, 1)-1
+    for j = i+1:size(ind, 1)
+      d = distance_fn(ind, i, j);
+      A = symetric_set(A, i, j, d);
+    endfor
+  endfor
+  L = laplace_matrix(degree_matrix_from_adjacency(A), A, norm);
+endfunction

@@ -107,7 +107,5 @@ endfunction
 %
 % params: x, gamma, lambda_min
 function r = h(x, gamma, lambda_min)
-  gamma
-  lambda_min
   r = gamma * e.^(-(x/(0.6*lambda_min)).^4);
 endfunction
