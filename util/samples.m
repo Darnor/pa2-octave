@@ -23,7 +23,7 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff = 20
-function [T, ind] = sample_image_wavelets(im, J = 10, cutoff = 20)
+function [T, ind] = sample_image_wavelets(im, J = 10, cutoff = 10)
   ind = get_local_maxima_indexes(im, @(x) cutoff_band_filter(x, cutoff));
   L = laplace_from_indexes(ind, @image_pixel_euclidean_distance);
   [chi, lambda] = eig(L);
@@ -54,4 +54,14 @@ function sample_plot_W(w, j)
     plot(w{k}{j});
     axis ([0 size(w{k}{j}, 1)-1 y_min y_max]);
   endfor
+endfunction
+
+%%
+% run full image transform sample
+function sample_full()
+  C = read_all_images("images");
+  D = C{2} - C{1};
+  [T, ind] = sample_image_wavelets(D);
+  w = sample_image_W(C, T, ind);
+  sample_plot_W(w, 10);
 endfunction
