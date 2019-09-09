@@ -90,6 +90,8 @@ function r = get_local_maxima_indexes(im, filter)
   endfor
 endfunction
 
+%%
+% params: ind, i, j, cutoff = 0.001
 function d = image_pixel_euclidean_distance(ind, i, j, cutoff = 0.001)
   d = 1/sqrt((ind(i, 1) - ind(j, 1))^2 + (ind(i, 2) - ind(j, 2))^2);
   if (d < 0.001)
@@ -97,6 +99,8 @@ function d = image_pixel_euclidean_distance(ind, i, j, cutoff = 0.001)
   endif
 endfunction
 
+%%
+% params: im, ind
 function f = function_from_indexes(im, ind)
   f = 0;
   for i = 1:size(ind, 1)
