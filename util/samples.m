@@ -22,10 +22,12 @@ function r = sample_periodic_fun(N)
 endfunction
 
 %%
-% params: im, J = 10, cutoff = 20
-function [T, ind] = sample_image_wavelets(im, J = 10, cutoff = 10)
-  ind = get_local_maxima_indexes(im, @(x) cutoff_band_filter(x, cutoff));
-  L = laplace_from_indexes(ind, @(ind) image_pixel_euclidean_distance_all(ind, true, @(d) false));
+% params: im, J = 10, cutoff_max = 10, cutoff_min = -10
+function [T, ind] = sample_image_wavelets(im, J = 10, cutoff_max = 10, cutoff_min = -10)
+  ind_a = get_local_maxima_indexes(cutoff_min_filter(im, 10)); %cutoff_band_filter(x, cutoff_max, cutoff_min));
+  ind_b = get_local_minima_indexes(cutoff_max_filter(im, -10));
+  ind = [ind_a; ind_b];
+  L = laplace_from_distances(image_pixel_euclidean_distance_all(ind, true, @(d) false));
   [chi, lambda] = eig(L);
   lambda = diag(lambda);
   T = wavelets(@g, @h, chi, lambda, J);
@@ -41,8 +43,8 @@ function w = sample_image_W(C, T, ind)
 endfunction
 
 %%
-% params: w, j
-function sample_plot_W(w, j)
+% params: w, j, figure_id_offset
+function sample_plot_W(w, j, figure_id_offset = 0)
   y_max = max(w{1}{j});
   y_min = min(w{1}{j});
   for k = 2:size(w, 2)
@@ -50,7 +52,7 @@ function sample_plot_W(w, j)
     y_min = min(min(w{k}{j}), y_min);
   endfor
   for k = 1:size(w, 2)
-    figure(k);
+    figure(k+figure_id_offset);
     plot(w{k}{j});
     axis ([0 size(w{k}{j}, 1)-1 y_min y_max]);
   endfor
@@ -63,14 +65,20 @@ function sample_full()
   D = C{2} - C{1};
   [T, ind] = sample_image_wavelets(D);
   w = sample_image_W(C, T, ind);
-  sample_plot_W(w, 10);
+  for j = 1:size(w, 2)
+    sample_plot_W(w, j, (j-1)*size(w, 2));
+  endfor
+endfunction
+
+function sample_mesh_image_with_indices(img, ind)
+  G = index_to_graph(ind, size(img, 1), size(img, 2));
+  imagesc(img+200*G);
 endfunction
 
 %%
 % params: img, ind, d
 function sample_mesh_image_with_graph(img, ind, d)
-  G = index_to_graph(ind, size(img, 1), size(img, 2));
-  imagesc(img+200*G);
+  sample_mesh_image_and_graph(img, ind);
   hold on;
   for i = 1:size(ind, 1)
     for j = 1:size(ind, 1)

@@ -61,27 +61,66 @@ function [res, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
 endfunction
 
 %%
-% params: im, cutoff_point
-function res = cutoff_band_filter(im, cutoff_point)
+% params: im, cutoff_max, cutoff_min
+function im = cutoff_band_filter(im, cutoff_max, cutoff_min)
+  if (cutoff_max < cutoff_min)
+    temp = cutoff_max;
+    cutoff_max = cutoff_min;
+    cutoff_min = temp;
+  endif
   for i = 1:size(im, 1)
     for j = 1:size(im, 2)
-      if (im(i, j) > cutoff_point || im(i, j) < -cutoff_point)
-        res(i, j) = im(i, j);
-      else
-        res(i, j) = 0;
+      if (im(i, j) > cutoff_max)
+        im(i, j) = cutoff_max;
+      endif
+      if (im(i, j) < cutoff_min)
+        im(i, j) = cutoff_min;
       endif
     endfor
   endfor
 endfunction
 
 %%
-% params: im, filter
-function r = get_local_maxima_indexes(im, filter)
-  M = imregionalmax(filter(im));
+% params: im, cutoff_point
+function im = cutoff_min_filter(im, cutoff_point)
+  for i = 1:size(im, 1)
+    for j = 1:size(im, 2)
+      if (im(i, j) < cutoff_point)
+        im(i, j) = cutoff_point;
+      endif
+    endfor
+  endfor
+endfunction
+
+%%
+% params: im, cutoff_point
+function im = cutoff_max_filter(im, cutoff_point)
+  for i = 1:size(im, 1)
+    for j = 1:size(im, 2)
+      if (im(i, j) > cutoff_point)
+        im(i, j) = cutoff_point;
+      endif
+    endfor
+  endfor
+endfunction
+
+%%
+% params: im
+function r = get_local_maxima_indexes(im)
+  r = get_local_extrema_indexes_internal(imregionalmax(im));
+endfunction
+
+%%
+% params: im
+function r = get_local_minima_indexes(im)
+  r = get_local_extrema_indexes_internal(imregionalmin(im));
+endfunction
+
+function r = get_local_extrema_indexes_internal(im)
   k = 1;
-  for i = 1:size(M, 1)
-    for j = 1:size(M, 2)
-      if (M(i, j) == 1)
+  for i = 1:size(im, 1)
+    for j = 1:size(im, 2)
+      if (im(i, j) == 1)
         r(k, 1) = i;
         r(k, 2) = j;
         k++;

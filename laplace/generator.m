@@ -239,13 +239,13 @@ function D = degree_matrix_from_adjacency(A)
 endfunction
 
 %%
-% params: ind, distance_fn, norm = false
-function [L, D, A] = laplace_from_indexes(ind, distance_fn, norm = false)
+% params: distances, norm = false
+function [L, D, A] = laplace_from_distances(distances, norm = false)
   A(1,1) = 0;
-  p = distance_fn(ind);
-  for i = 1:size(ind, 1)
-    for j = 1:size(ind, 1)
-      A = symetric_set(A, i, j, p{i}(j));
+  for i = 1:size(distances, 2)
+    for j = 1:size(distances, 2)
+      A(i, j) = distances{i}(j);
+      A(j, i) = distances{i}(j);
     endfor
   endfor
   D = degree_matrix_from_adjacency(A);
