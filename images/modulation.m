@@ -91,12 +91,45 @@ function r = get_local_maxima_indexes(im, filter)
 endfunction
 
 %%
-% params: ind, i, j, cutoff = 0.001
-function d = image_pixel_euclidean_distance(ind, i, j, cutoff = 0.001)
-  d = 1/sqrt((ind(i, 1) - ind(j, 1))^2 + (ind(i, 2) - ind(j, 2))^2);
-  if (d < 0.001)
+% params: ind, norm = false, filter = @(d) false
+function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d) false)
+  for i = 1:size(ind, 1)
+    for j = 1:size(ind, 1)
+      d(j) = image_pixel_euclidean_distance(ind(i, 1), ind(j, 1), ind(i, 2), ind(j, 2));
+    endfor
+    if (norm)
+      m(i) = max(d);
+    endif
+    for k = 1:size(d, 2)
+      if (filter(d(k)))
+        d(k) = 0;
+      endif
+    endfor
+    p{i} = d';
+  endfor
+  for k = 1:size(p)
+    p{k} = p{k} * 1 / max(m);
+  endfor
+endfunction
+
+%%
+% params: x1, x2, y1, y2
+function d = image_pixel_euclidean_distance(x1, x2, y1, y2)
+  if (x1 == x2 && y1 == y2)
+    % catch diff 0
     d = 0;
+  else
+    d = 1/sqrt((x1 - x2)^2 + (y1 - y2)^2);
   endif
+endfunction
+
+%%
+% params: ind, l, b
+function G = index_to_graph(ind, l, b)
+  G = zeros(l, b);
+  for i = 1:size(ind, 1)
+    G(ind(i, 1), ind(i, 2)) = 1;
+  endfor
 endfunction
 
 %%
