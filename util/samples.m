@@ -58,6 +58,23 @@ function sample_plot_W(w, j, figure_id_offset = 0)
 endfunction
 
 %%
+% params: orig_im, n = 3, fps = 50, fn = @(x, y) 20*sin(5*x-y)
+function sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, fn = @(x, y) 20*sin(5*x-y))
+  d = linspace(0, 2*pi, fps);
+  if (n < 1)
+    S{1} = orig_im;
+  endif
+  for k = 1:n
+    S{k} = stretch_modulate_image(orig_im, @(x) fn(x, d(k)));
+  endfor
+  [T, ind, d] = sample_image_wavelets(S{1});
+  w = sample_image_W(S, T, ind);
+  for j = 1:size(w{1}, 2)
+    sample_plot_W(w, j, (j-1)*size(w, 2));
+  endfor
+endfunction
+
+%%
 % run full image transform sample
 function sample_full()
   C = read_all_images("images");
