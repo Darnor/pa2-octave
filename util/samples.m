@@ -23,11 +23,10 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff_max = 10, cutoff_min = -10
-function [T, ind] = sample_image_wavelets(im, J = 10, cutoff_max = 10, cutoff_min = -10)
-  ind_a = get_local_maxima_indexes(cutoff_min_filter(im, 10)); %cutoff_band_filter(x, cutoff_max, cutoff_min));
-  ind_b = get_local_minima_indexes(cutoff_max_filter(im, -10));
-  ind = [ind_a; ind_b];
-  L = laplace_from_distances(image_pixel_euclidean_distance_all(ind, true, @(d) false));
+function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 50)
+  ind = get_n_local_gradient_extrema_value_indexes(im, max_N);
+  d = image_pixel_euclidean_distance_all(ind, true);
+  L = laplace_from_distances(d);
   [chi, lambda] = eig(L);
   lambda = diag(lambda);
   T = wavelets(@g, @h, chi, lambda, J);
@@ -62,8 +61,7 @@ endfunction
 % run full image transform sample
 function sample_full()
   C = read_all_images("images");
-  D = C{2} - C{1};
-  [T, ind] = sample_image_wavelets(D);
+  [T, ind, d] = sample_image_wavelets(C{1});
   w = sample_image_W(C, T, ind);
   for j = 1:size(w, 2)
     sample_plot_W(w, j, (j-1)*size(w, 2));
@@ -78,7 +76,7 @@ endfunction
 %%
 % params: img, ind, d
 function sample_mesh_image_with_graph(img, ind, d)
-  sample_mesh_image_and_graph(img, ind);
+  sample_mesh_image_with_indices(img, ind);
   hold on;
   for i = 1:size(ind, 1)
     for j = 1:size(ind, 1)

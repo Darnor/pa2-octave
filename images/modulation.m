@@ -28,6 +28,13 @@ function [res, f] = multiply_modulate_image(im, fn, l = 'hor')
   endif
 endfunction
 
+function S = stretch_modulate_image_series(im, fn, fps, l = 'hor', m = 'spline')
+  d = linspace(0, 2*pi, fps);
+  for k = 1:fps
+    S{k} = stretch_modulate_image(im, @(x) fn(x, d(k)), l, m);
+  endfor
+endfunction
+
 %%
 % params: im, fn, l = 'hor' | 'vert', m = 'spline'
 function [res, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
@@ -105,28 +112,40 @@ function im = cutoff_max_filter(im, cutoff_point)
 endfunction
 
 %%
-% params: im
-function r = get_local_maxima_indexes(im)
-  r = get_local_extrema_indexes_internal(imregionalmax(im));
-endfunction
-
-%%
-% params: im
-function r = get_local_minima_indexes(im)
-  r = get_local_extrema_indexes_internal(imregionalmin(im));
-endfunction
-
-function r = get_local_extrema_indexes_internal(im)
+% param: im
+function r = get_local_extrema_indexes(im)
+  reg_min = imregionalmin(im);
+  reg_max = imregionalmax(im);
+  reg_extremas = reg_min + reg_max;
   k = 1;
-  for i = 1:size(im, 1)
-    for j = 1:size(im, 2)
-      if (im(i, j) == 1)
+  for i = 1:size(reg_extremas, 1)
+    for j = 1:size(reg_extremas, 2)
+      if (reg_extremas(i, j) >= 1)
         r(k, 1) = i;
         r(k, 2) = j;
         k++;
       endif
     endfor
   endfor
+endfunction
+
+%%
+% param: im
+function r = get_n_local_gradient_extrema_value_indexes(im, N)
+%  sortedValues = unique(im);               % Unique sorted values
+%  maxValues = sortedValues(end-(N-1):end); % Get the 5 largest values
+%  maxIndex = ismember(im, maxValues);      % Get a logical index of all values
+%                                           % equal to the 5 largest values
+  gradient_im = gradient(im);
+  reg_min = imregionalmin(gradient_im);
+  reg_max = imregionalmax(gradient_im);
+  reg_extremas = (reg_min + reg_max).*gradient_im;
+  sorted_values = unique(reg_extremas);
+  max_values = sorted_values(end-(floor(N/2)-1):end);
+  min_values = sorted_values(1:ceil(N/2));
+  maxima_index = ismember(gradient_im, [max_values; min_values]);
+  [rows, cols] = find(maxima_index);
+  r = [rows cols];
 endfunction
 
 %%
@@ -147,7 +166,7 @@ function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d)
     p{i} = d';
   endfor
   for k = 1:size(p)
-    p{k} = p{k} * 1 / max(m);
+    p{k} = p{k} / max(m);
   endfor
 endfunction
 
