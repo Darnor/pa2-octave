@@ -52,14 +52,14 @@ function sample_plot_W(w, j, figure_id_offset = 0)
   endfor
   for k = 1:size(w, 2)
     figure(k+figure_id_offset);
-    plot(w{k}{j});
+    plot(abs(w{k}{j}).^2);
     axis ([0 size(w{k}{j}, 1)-1 y_min y_max]);
   endfor
 endfunction
 
 %%
-% params: orig_im, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(5*x-y)
-function [S, phases, T, ind, d] = sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(5*x-y))
+% params: orig_im, s = 1, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(5*x-y)
+function [S, phases, T, ind, d, w] = sample_first_n_stretched_images_fps(orig_im, s = 1, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(10*x-y))
   if (n > fps)
     n = fps;
   endif
@@ -67,19 +67,20 @@ function [S, phases, T, ind, d] = sample_first_n_stretched_images_fps(orig_im, n
   if (n < 1)
     S{1} = orig_im;
   endif
-  for k = 1:n
-    S{k} = stretch_modulate_image(orig_im, @(x) fn(x, phases(k)));
+  A = stretch_modulate_image(orig_im, @(x) fn(x, phases(1)));
+  for k = 1:n-(s-1)
+    S{k} = stretch_modulate_image(orig_im, @(x) fn(x, phases(k+(s-1))));
   endfor
-  [T, ind, d] = sample_image_wavelets(S{1}, J, max_N);
+  [T, ind, d] = sample_image_wavelets(A, J, max_N);
   w = sample_image_W(S, T, ind);
   N = size(w{1}, 2);
   for j = 1:N
-    sample_plot_W(w, j, (j-1)*size(w, 2));
+    %sample_plot_W(w, j, (j-1)*size(w, 2));
   endfor
   offset = N*size(w, 2);
   for j = N+1:N+n
-    figure(offset + (j - N));
-    sample_mesh_image_with_indices(S{j-N}, ind);
+    %figure(offset + (j - N));
+    %sample_mesh_image_with_indices(S{j-N}, ind);
   endfor
 endfunction
 

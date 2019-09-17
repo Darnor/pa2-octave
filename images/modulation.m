@@ -37,7 +37,7 @@ endfunction
 
 %%
 % params: im, fn, l = 'hor' | 'vert', m = 'spline'
-function [res, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
+function [S, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
   [N, M] = size(im);
   isVertical = strcmp(l, 'vert') == 1;
   if (isVertical)
@@ -52,7 +52,7 @@ function [res, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
     for i = 1:M
       r = interp1(x, im(:, i)', xf, m);
       for j = 1:N
-        res(j, i) = r(j);
+        S(j, i) = r(j);
       endfor
     endfor
   else
@@ -61,10 +61,11 @@ function [res, f, xf] = stretch_modulate_image(im, fn, l = 'hor', m = 'spline')
     for i = 1:N
       r = interp1(x, im(i, :), xf, m);
       for j = 1:M
-        res(i, j) = r(j);
+        S(i, j) = r(j);
       endfor
     endfor
   endif
+  S(isnan(S)) = 0;
 endfunction
 
 %%
