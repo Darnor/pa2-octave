@@ -131,7 +131,7 @@ endfunction
 
 %%
 % param: im
-function r = get_n_local_gradient_extrema_value_indexes(im, N)
+function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
 %  sortedValues = unique(im);               % Unique sorted values
 %  maxValues = sortedValues(end-(N-1):end); % Get the 5 largest values
 %  maxIndex = ismember(im, maxValues);      % Get a logical index of all values
@@ -141,11 +141,33 @@ function r = get_n_local_gradient_extrema_value_indexes(im, N)
   reg_max = imregionalmax(gradient_im);
   reg_extremas = (reg_min + reg_max).*gradient_im;
   sorted_values = unique(reg_extremas);
-  max_values = sorted_values(end-(floor(N/2)-1):end);
-  min_values = sorted_values(1:ceil(N/2));
-  maxima_index = ismember(gradient_im, [max_values; min_values]);
-  [rows, cols] = find(maxima_index);
-  r = [rows cols];
+  start_idx = 1;
+  end_idx = size(sorted_values, 1);
+  offset = 0;
+  do
+    max_values = sorted_values(1+offset:end);
+    min_values = sorted_values(1:end-offset);
+    maxima_index = ismember(gradient_im, [max_values; min_values]);
+    [rows, cols] = find(maxima_index);
+    r = [rows cols];
+    % cases:
+    offset = floor((start_idx + end_idx)/2);
+    if (size(r, 1) > N)
+      % size(r, 1) > N -> we need less values -> inc start_idx, dec end_idx
+      start_idx = offset;
+    elseif (size(r, 1) < N)
+      % size(r, 1) < N -> we need more values -> dec start_idx, inc end_idx
+      end_idx = offset;
+    elseif (size(r, 1) == N)
+      % size(r, 1) == N -> done
+      break;
+    endif
+  until start_idx >= end_idx;
+%  max_values = sorted_values(end-(floor(N/2)-1):end);
+%  min_values = sorted_values(1:ceil(N/2));
+%  maxima_index = ismember(gradient_im, [max_values; min_values]);
+%  [rows, cols] = find(maxima_index);
+%  r = [rows cols];
 endfunction
 
 %%

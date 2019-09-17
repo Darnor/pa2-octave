@@ -23,8 +23,8 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff_max = 10, cutoff_min = -10
-function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 50)
-  ind = get_n_local_gradient_extrema_value_indexes(im, max_N);
+function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 1000)
+  ind = get_max_n_local_gradient_extrema_value_indexes(im, max_N);
   d = image_pixel_euclidean_distance_all(ind, true);
   L = laplace_from_distances(d);
   [chi, lambda] = eig(L);
@@ -69,8 +69,14 @@ function sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, fn = @(x,
   endfor
   [T, ind, d] = sample_image_wavelets(S{1});
   w = sample_image_W(S, T, ind);
-  for j = 1:size(w{1}, 2)
+  N = size(w{1}, 2);
+  for j = 1:N
     sample_plot_W(w, j, (j-1)*size(w, 2));
+  endfor
+  offset = N*size(w, 2);
+  for j = N+1:N+n
+    figure(offset + (j - N));
+    imagesc(S{j-N});
   endfor
 endfunction
 
@@ -80,11 +86,13 @@ function sample_full()
   C = read_all_images("images");
   [T, ind, d] = sample_image_wavelets(C{1});
   w = sample_image_W(C, T, ind);
-  for j = 1:size(w, 2)
+  for j = 1:size(w{1}, 2)
     sample_plot_W(w, j, (j-1)*size(w, 2));
   endfor
 endfunction
 
+%%
+% params: img, ind
 function sample_mesh_image_with_indices(img, ind)
   G = index_to_graph(ind, size(img, 1), size(img, 2));
   imagesc(img+200*G);
