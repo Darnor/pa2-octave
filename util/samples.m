@@ -58,16 +58,19 @@ function sample_plot_W(w, j, figure_id_offset = 0)
 endfunction
 
 %%
-% params: orig_im, n = 3, fps = 50, fn = @(x, y) 20*sin(5*x-y)
-function sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, fn = @(x, y) 20*sin(5*x-y))
-  d = linspace(0, 2*pi, fps);
+% params: orig_im, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(5*x-y)
+function [S, phases, T, ind, d] = sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, J = 10, max_N = 1000, fn = @(x, y) 20*sin(5*x-y))
+  if (n > fps)
+    n = fps;
+  endif
+  phases = linspace(0, 2*pi, fps);
   if (n < 1)
     S{1} = orig_im;
   endif
   for k = 1:n
-    S{k} = stretch_modulate_image(orig_im, @(x) fn(x, d(k)));
+    S{k} = stretch_modulate_image(orig_im, @(x) fn(x, phases(k)));
   endfor
-  [T, ind, d] = sample_image_wavelets(S{1});
+  [T, ind, d] = sample_image_wavelets(S{1}, J, max_N);
   w = sample_image_W(S, T, ind);
   N = size(w{1}, 2);
   for j = 1:N
@@ -76,7 +79,7 @@ function sample_first_n_stretched_images_fps(orig_im, n = 3, fps = 50, fn = @(x,
   offset = N*size(w, 2);
   for j = N+1:N+n
     figure(offset + (j - N));
-    imagesc(S{j-N});
+    sample_mesh_image_with_indices(S{j-N}, ind);
   endfor
 endfunction
 

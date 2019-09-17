@@ -163,11 +163,6 @@ function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
       break;
     endif
   until start_idx >= end_idx;
-%  max_values = sorted_values(end-(floor(N/2)-1):end);
-%  min_values = sorted_values(1:ceil(N/2));
-%  maxima_index = ismember(gradient_im, [max_values; min_values]);
-%  [rows, cols] = find(maxima_index);
-%  r = [rows cols];
 endfunction
 
 %%
