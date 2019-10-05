@@ -1,5 +1,37 @@
 pkg load image;
 
+function fz = focus_measure(im, n = 2)
+  fz = 0;
+  [N, M] = size(im);
+
+  for i = 1:N
+    for j = 1:M-n
+      fz += (im(i, j) - im(i, j+n))^2;
+    endfor
+  endfor
+endfunction
+
+function FZ = focus_measure_split(SplitImage, n = 2)
+  FZ = zeros(size(SplitImage));
+  for i = 1:size(SplitImage, 1)
+    for j = 1:size(SplitImage, 2)
+      FZ(i, j) = focus_measure(SplitImage{i, j}, n);
+    endfor
+  endfor
+endfunction
+
+function R = split_image(im, v_splits = 8, h_splits = 8)
+  [N, M] = size(im);
+  v_size = ceil(N/v_splits);
+  h_size = ceil(M/h_splits);
+
+  for j = 1:v_splits
+    for i = 1:h_splits
+      R{j, i} = im((j-1)*v_size+1:j*v_size, (i-1)*h_size+1:i*h_size);
+    endfor
+  endfor
+endfunction
+
 %%
 % params: im, fn, l = 'hor' | 'vert'
 function [res, f] = multiply_modulate_image(im, fn, l = 'hor')
