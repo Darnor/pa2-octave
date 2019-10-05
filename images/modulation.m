@@ -130,6 +130,80 @@ function r = get_local_extrema_indexes(im)
   endfor
 endfunction
 
+function R = variance_mean_image_quadrant_internal(im)
+  [N, M] = size(im);
+
+  TopLeft = im(1:ceil(N/2), 1:ceil(M/2));
+  TopRight = im(1:ceil(N/2), ceil(M/2):M);
+  BottomLeft = im(ceil(N/2):N, 1:ceil(M/2));
+  BottomRight = im(ceil(N/2):N, ceil(M/2):M);
+  
+  Var(1, 1) = var(TopLeft(:));
+  Var(1, 2) = var(TopRight(:));
+  Var(2, 1) = var(BottomLeft(:));
+  Var(2, 2) = var(BottomRight(:));
+
+  Std(1, 1) = std(TopLeft(:));
+  Std(1, 2) = std(TopRight(:));
+  Std(2, 1) = std(BottomLeft(:));
+  Std(2, 2) = std(BottomRight(:));
+
+  Mean(1, 1) = mean(TopLeft(:));
+  Mean(1, 2) = mean(TopRight(:));
+  Mean(2, 1) = mean(BottomLeft(:));
+  Mean(2, 2) = mean(BottomRight(:));
+
+  R{1, 1} = Var;
+  R{1, 2} = Std;
+  R{1, 3} = Mean;
+  R{2, 1} = TopLeft;
+  R{2, 2} = TopRight;
+  R{2, 3} = BottomLeft;
+  R{2, 4} = BottomRight;
+endfunction
+
+function [ind, R] = variance_mean_image_quadrant(im, max_N = 1024)
+  R = variance_mean_image_quadrant_internal(im);
+  ind = 0;
+  for n = 1:max_N
+    m = mean(R{1,2}(:));
+    if (R{1,2}(1,1) > m)
+      
+    endif
+    if (R{1,2}(1,2) > m)
+      
+    endif
+    if (R{1,2}(2,1) > m)
+      
+    endif
+    if (R{1,2}(2,2) > m)
+      
+    endif
+  endfor
+  ind(cellfun(@isempty, ind)) = [];
+%  cutoff = max(starting_variance-(starting_variance/100*percentage), 0);
+
+%  R{k, 1} = Var;
+%  R{k, 2} = Mean;
+
+%  if (Var(1, 1) > cutoff)
+%    disp("top left");
+%    R{k} = variance_mean_image_quadrant(TopLeft, percentage, k+1);
+%  endif
+%  if (Var(1, 2) > cutoff)
+%    disp("top right");
+%    R{k} = variance_mean_image_quadrant(TopRight, percentage, k+1);
+%  endif
+%  if (Var(2, 1) > cutoff)
+%    disp("bottom left");
+%    R{k} = variance_mean_image_quadrant(BottomLeft, percentage, k+1);
+%  endif
+%  if (Var(2, 2) > cutoff)
+%    disp("bottom right");
+%    R{k} = variance_mean_image_quadrant(BottomRight, percentage, k+1);
+%  endif
+endfunction
+
 %%
 % param: im
 function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
@@ -163,6 +237,8 @@ function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
       % size(r, 1) == N -> done
       break;
     endif
+    start_idx
+    end_idx
   until start_idx >= end_idx;
 endfunction
 
