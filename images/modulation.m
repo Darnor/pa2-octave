@@ -1,6 +1,6 @@
 pkg load image;
 
-function fz = focus_measure(im, n = 2)
+function fz = focus_measure_brenner(im, n = 2)
   fz = 0;
   [N, M] = size(im);
 
@@ -11,19 +11,41 @@ function fz = focus_measure(im, n = 2)
   endfor
 endfunction
 
-function FZ = focus_measure_split(SplitImage, n = 2)
+function fz = focus_measure_five_stencil(im, n = 2, m = 2)
+  fz = 0;
+  [N, M] = size(im);
+
+  for i = 1+n:N-n
+    for j = 1+m:M-m
+      fz += (4*im(i, j) - im(i, j+m) - im(i, j-m) - im(i+n, j) - im(i-n, j))^2;
+    endfor
+  endfor
+endfunction
+
+function fz = focus_measure_eight_stencil(im, n = 2, m = 2)
+  fz = 0;
+  [N, M] = size(im);
+
+  for i = 1+n:N-n
+    for j = 1+m:M-m
+      fz += (8*im(i, j) - im(i, j+m) - im(i, j-m) - im(i+n, j) - im(i-n, j) - im(i+n, j+m) - im(i+n, j-m) - im(i-n, j+m) - im(i-n, j-m))^2;
+    endfor
+  endfor
+endfunction
+
+function FZ = focus_measure_split(SplitImage, fn)
   FZ = zeros(size(SplitImage));
   for i = 1:size(SplitImage, 1)
     for j = 1:size(SplitImage, 2)
-      FZ(i, j) = focus_measure(SplitImage{i, j}, n);
+      FZ(i, j) = fn(SplitImage{i, j});
     endfor
   endfor
 endfunction
 
 function R = split_image(im, v_splits = 8, h_splits = 8)
   [N, M] = size(im);
-  v_size = ceil(N/v_splits);
-  h_size = ceil(M/h_splits);
+  v_size = max(1, floor(N/v_splits));
+  h_size = max(1, floor(M/h_splits));
 
   for j = 1:v_splits
     for i = 1:h_splits
