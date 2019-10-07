@@ -28,7 +28,17 @@ function fz = focus_measure_eight_stencil(im, n = 2, m = 2)
 
   for i = 1+n:N-n
     for j = 1+m:M-m
-      fz += (8*im(i, j) - im(i, j+m) - im(i, j-m) - im(i+n, j) - im(i-n, j) - im(i+n, j+m) - im(i+n, j-m) - im(i-n, j+m) - im(i-n, j-m))^2;
+      fz += (...
+        8*im(i, j) ...
+        - im(i+n, j) ...
+        - im(i-n, j) ...
+        - im(i, j+m) ...
+        - im(i+n, j+m) ...
+        - im(i-n, j+m) ...
+        - im(i, j-m) ...
+        - im(i+n, j-m) ...
+        - im(i-n, j-m) ...
+        )^2;
     endfor
   endfor
 endfunction
@@ -52,6 +62,43 @@ function R = split_image(im, v_splits = 8, h_splits = 8)
       R{j, i} = im((j-1)*v_size+1:j*v_size, (i-1)*h_size+1:i*h_size);
     endfor
   endfor
+endfunction
+
+function ind = get_point_index(r, v, h)
+  v_offset = ceil(v / 2);
+  h_offset = ceil(h / 2);
+  ind = [r(1,1) * v - v_offset, r(1,2) * h - h_offset];
+  for i = 2:size(r, 1);
+    ind = [ind; r(i,1) * v - v_offset, r(i,2) * h - h_offset];
+  endfor
+endfunction
+
+function ind = get_index_from_split_image(im, max_N = 1000)
+  r = [-1, -1];
+  [N, M] = size(im);
+  for v = 2:30
+    v
+    %for h = 8:20
+      h = v;
+      v_size = max(1, floor(N/v));
+      h_size = max(1, floor(M/h));
+      R = split_image(im, v, h);
+      Q = focus_measure_split(R, @(im) focus_measure_brenner(im));
+      [cols, rows] = find(Q>median(Q));
+      if (size(cols, 1) + size(r,1) > max_N)
+        disp("exceeding max_N");
+        disp(size(cols, 1) + size(r,1));
+        ind = r;
+        return;
+      endif
+      if (r(1, 1) == r(1, 2) && r(1, 1) == -1)
+        r = get_point_index([cols, rows], v_size, h_size);
+      else
+        r = [r; get_point_index([cols, rows], v_size, h_size)];
+      endif
+    %endfor
+  endfor
+  ind = r;
 endfunction
 
 %%
@@ -305,6 +352,8 @@ function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d)
     endfor
     if (norm)
       m(i) = max(d);
+    else
+      m(i) = 1;
     endif
     for k = 1:size(d, 2)
       if (filter(d(k)))

@@ -13,6 +13,20 @@ function delta = dirac_delta(x)
   delta = delta';
 endfunction
 
+function print_wavelets(w)
+  for j = 1:size(w, 2)
+    O = (w{j}{1}).^2;
+    for k = 2:size(w{j}, 2)
+      O = [O (w{j}{k}).^2];
+    endfor
+    O = O';
+    name = ["~/abs_value_" num2str(j) ".svg"];
+    imagesc(O);
+    colorbar();
+    print("-dsvg", name);
+  endfor
+endfunction
+
 %%
 % params: N
 function r = sample_periodic_fun(N)
@@ -23,8 +37,8 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff_max = 10, cutoff_min = -10
-function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 1000)
-  ind = get_max_n_local_gradient_extrema_value_indexes(im, max_N);
+function [T, ind, d] = sample_image_wavelets(im, indexFn, J = 10, max_N = 1000)
+  ind = indexFn(im, max_N);
   d = image_pixel_euclidean_distance_all(ind, true);
   L = laplace_from_distances(d);
   [chi, lambda] = eig(L);
