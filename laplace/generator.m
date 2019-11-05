@@ -24,6 +24,20 @@ function [L, D, A] = laplace_icosahedron(norm = false)
   L = laplace_matrix(D, A, norm);
 endfunction
 
+function [L, D, A] = laplace_fully_connected(l, b, norm = false)
+  N = l * b;
+  A = ones(N, N) - eye(N);
+  D = degree_matrix_from_adjacency(A);
+  L = laplace_matrix(D, A, norm);
+endfunction
+
+function [L, D, A] = laplace_from_distances_fully_connected(l, b, norm = false)
+  [r, c] = find(ones(l, b));
+  ind = [r c];
+  d = image_pixel_euclidean_distance_all(ind);
+  [L, D, A] = laplace_from_distances(d, norm);
+endfunction
+
 %%
 % params: N, norm = false
 % same as: laplace_1D(N, true, norm)
@@ -213,7 +227,7 @@ endfunction
 function L = laplace_matrix(D, A, norm = false)
   if (norm)
     sqD = D^(-1/2);
-    L = eye(N) - sqD * A * sqD;
+    L = eye(size(D, 1)) - sqD * A * sqD;
   else
     L = D - A;
   endif
@@ -225,17 +239,7 @@ endfunction
 % A is the adjacency matrix for which the degree matrix
 % will be generated
 function D = degree_matrix_from_adjacency(A)
-  [rows, columns] = size(A);
-
-  d = zeros(rows, 1);
-
-  for i = 1:rows
-    for j = 1:columns
-      d(i) += A(i,j);
-    endfor
-  endfor
-
-  D = diag(d);
+  D = diag(sum(A));
 endfunction
 
 %%

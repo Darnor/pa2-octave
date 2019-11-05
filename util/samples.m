@@ -13,18 +13,101 @@ function delta = dirac_delta(x)
   delta = delta';
 endfunction
 
-function print_wavelets(w)
-  for j = 1:size(w, 2)
-    O = (w{j}{1}).^2;
-    for k = 2:size(w{j}, 2)
-      O = [O (w{j}{k}).^2];
-    endfor
-    O = O';
-    name = ["~/abs_value_" num2str(j) ".svg"];
-    imagesc(O);
-    colorbar();
-    print("-dsvg", name);
+function O = wavelet_image(w, ignore_h_kernel = true)
+  O = (w{1}).^2;
+  M = size(w, 2);
+  if (ignore_h_kernel)
+    --M;
+  endif
+  for k = 2:M
+    O = [O (w{k}).^2];
   endfor
+  O = O';
+endfunction
+
+function OO = wavelet_image_series(w, ignore_h_kernel = true)
+  for j = 1:size(w, 2)
+    OO{j} = wavelet_image(w{j});
+  endfor
+endfunction
+
+function print_wavelet_image_compare(ww, w_num, type, ignore_h_kernel = true)
+  y_max = 0;
+  y_min = 0;
+  l = 48;
+  b = 27;
+  OO = wavelet_image_series(ww, ignore_h_kernel);
+  R = OO{1}(w_num, :);
+  for j = 2:size(OO, 2)
+    R = [R; OO{j}(w_num, :)];
+  endfor
+  y_max = max(R(:));
+  y_min = min(R(:));
+  print_wavelets(R, y_min, y_max, type, ["~/wavelet_compare_" num2str(w_num)]);
+endfunction
+
+function print_wavelets(O, y_min, y_max, type, file_name = "~/abs_value")
+  imagesc(O, [y_min, y_max]);
+  colorbar();
+  print(["-d" type], [file_name "." type]);
+endfunction
+
+function print_wavelet_series(ww, type, ignore_h_kernel = true)
+  y_max = 0;
+  y_min = 0;
+  OO = wavelet_image_series(ww, ignore_h_kernel);
+  for j = 1:size(OO, 2)
+    y_max = max(max(OO{j}(:), y_max));
+    y_min = min(min(OO{j}(:), y_min));
+  endfor
+  for j = 1:size(OO, 2)
+    print_wavelets(OO{j}, y_min, y_max, type, ["~/abs_value_" num2str(j)]);
+  endfor
+endfunction
+
+function sample_trimmed_images(C, T, l, b, offset, ignore_h_kernel = true)
+  ww = sample_image_series(C, T, @(im) to_vector(cut_image(im, l, b, offset), l, b));
+  type = "png";
+  print_wavelet_series(ww, type);
+  N = size(ww{1}, 2);
+  if (ignore_h_kernel)
+    --N;
+  endif
+  for i = 1:N
+    print_wavelet_image_compare(ww, i, type)
+  endfor
+  OO = wavelet_image_series(ww, ignore_h_kernel);
+  % calculate the standard deviation of all wavelets for each image
+  for i = 1:size(OO{1}, 1)
+    R = OO{1}(i, :);
+    for j = 2:size(OO, 2)
+      R = [R; OO{j}(i, :)];
+    endfor
+    VV{i} = var(R')';
+    SS{i} = std(R')';
+    MM{i} = mean(R')';
+  endfor
+
+  V = cell2mat(VV);
+  imagesc(V);
+  colorbar();
+  print(["-d" type], ["~/variance." type]);
+  disp("VAR(VAR):");
+  disp(var(V(:)));
+
+  S = cell2mat(SS);
+  imagesc(S);
+  colorbar();
+  print(["-d" type], ["~/stdeviation." type]);
+  disp("STD(STD):");
+  disp(std(S(:)));
+  
+  M = cell2mat(MM);
+  imagesc(M);
+  colorbar();
+  print(["-d" type], ["~/mean." type]);
+  disp("MEAN(MEAN):");
+  disp(mean(M(:)));
 endfunction
 
 %%
@@ -37,8 +120,8 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff_max = 10, cutoff_min = -10
-function [T, ind, d] = sample_image_wavelets(im, indexFn, J = 10, max_N = 1000)
-  ind = indexFn(im, max_N);
+function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 1000)
+  ind = get_max_n_local_gradient_extrema_value_indexes(im, max_N);
   d = image_pixel_euclidean_distance_all(ind, true);
   L = laplace_from_distances(d);
   [chi, lambda] = eig(L);
@@ -52,6 +135,19 @@ function w = sample_image_W(C, T, ind)
   for i = 1:size(C, 2)
     f = function_from_indexes(C{i}, ind);
     w{i} = W(f, T);
+  endfor
+endfunction
+
+function C = cut_image(im, l, b, offset)
+  C = im(offset:offset+b-1, offset:offset+l-1);
+endfunction
+
+%%
+% params: C, T, fun
+function ww = sample_image_series(C, T, fun)
+  for i = 1:size(C, 2)
+    f = fun(C{i});
+    ww{i} = W(f, T);
   endfor
 endfunction
 

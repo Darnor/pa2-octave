@@ -18,6 +18,7 @@ function [T, t, fn_result] = wavelets(g, h, chi, lambda, J, K = 20, lambda_max =
   if (must_diag)
     lambda = diag(lambda);
   endif
+  lambda_max = max(lambda);
   [t, lambda_min] = tJ(J, K, lambda_max, x2);
   for j = 1:J
     [T{j}, fn_result{j}] = Tf(g, t(j), chi, lambda);

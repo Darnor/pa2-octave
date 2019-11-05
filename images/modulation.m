@@ -352,8 +352,6 @@ function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d)
     endfor
     if (norm)
       m(i) = max(d);
-    else
-      m(i) = 1;
     endif
     for k = 1:size(d, 2)
       if (filter(d(k)))
@@ -362,9 +360,11 @@ function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d)
     endfor
     p{i} = d';
   endfor
-  for k = 1:size(p)
-    p{k} = p{k} / max(m);
-  endfor
+  if (norm)
+    for k = 1:size(p)
+      p{k} = p{k} / max(m);
+    endfor
+  endif
 endfunction
 
 %%
