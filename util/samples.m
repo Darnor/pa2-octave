@@ -213,13 +213,13 @@ function sample_mesh_image_with_indices(img, ind)
 endfunction
 
 %%
-% params: img, ind, d
-function sample_mesh_image_with_graph(img, ind, d)
+% params: img, ind, d, min_dist = 0
+function sample_mesh_image_with_graph(img, ind, d, min_dist = 0)
   sample_mesh_image_with_indices(img, ind);
   hold on;
   for i = 1:size(ind, 1)
     for j = 1:size(ind, 1)
-      if (d{i}(j) > 0)
+      if (d{i}(j) > min_dist)
         x = [ind(j, 2) ind(i, 2)];
         y = [ind(j, 1) ind(i, 1)];
         plot(x, y, 'r;;');
