@@ -19,3 +19,10 @@ function C = read_all_images(impath)
   endfor
 endfunction
 
+function C = read_all_images_raw(impath)
+  ims = dir(fullfile(impath, '*.png'));
+  for k = 1:length(ims)
+    C{k} = double(imread(fullfile(impath, ims(k).name)));
+  endfor
+endfunction
+

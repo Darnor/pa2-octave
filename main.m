@@ -3,3 +3,5 @@ source("sgwt/sources.m")
 source("plotting/sources.m")
 source("util/sources.m")
 source("images/sources.m")
+source("tests/sources.m")
+
