@@ -28,7 +28,7 @@ run_all_series()
   run_single_series MOV moon-1 10 50 1
   run_single_series MOV moon-2 10 50 5
   run_single_series MOV moon-3 10 50 10
-  run_single_series MOV moon-5 10 50 15
+  run_single_series MOV moon-4 10 50 15
   run_single_series MOV moon-5 10 50 25
 
   run_single_series AVI sun-1 00 50 1
