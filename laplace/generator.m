@@ -247,7 +247,7 @@ endfunction
 function [L, D, A] = laplace_from_distances(distances, norm = false)
   A(1,1) = 0;
   for i = 1:size(distances, 2)
-    for j = 1:size(distances, 2)
+    for j = 1:size(distances{i}, 2)
       A(i, j) = distances{i}(j);
       A(j, i) = distances{i}(j);
     endfor

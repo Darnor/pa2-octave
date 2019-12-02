@@ -120,6 +120,16 @@ endfunction
 
 %%
 % params: im, J = 10, cutoff_max = 10, cutoff_min = -10
+function [T, ind, d] = sample_image_wavelets_nearest(im, N, max_N = 1000, J = 10)
+  ind = get_max_n_gradient_indexes(im, max_N);
+  d = image_pixel_euclidean_distance_n_nearest_all(ind, N, true);
+  L = laplace_from_distances(d);
+  [chi, lambda] = eig(L, "vector");
+  T = wavelets(@g, @h, chi, lambda, J);
+endfunction
+
+%%
+% params: im, J = 10, cutoff_max = 10, cutoff_min = -10
 function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 1000)
   ind = get_max_n_local_gradient_extrema_value_indexes(im, max_N);
   d = image_pixel_euclidean_distance_all(ind, true);
@@ -128,6 +138,7 @@ function [T, ind, d] = sample_image_wavelets(im, J = 10, max_N = 1000)
   lambda = diag(lambda);
   T = wavelets(@g, @h, chi, lambda, J);
 endfunction
+
 
 %%
 % params: C, T, ind
@@ -197,7 +208,7 @@ endfunction
 %%
 % run full image transform sample
 function sample_full()
-  C = read_all_images("images");
+  C = read_all_images("images/png/short");
   [T, ind, d] = sample_image_wavelets(C{1});
   w = sample_image_W(C, T, ind);
   for j = 1:size(w{1}, 2)

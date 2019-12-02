@@ -307,7 +307,7 @@ endfunction
 
 %%
 % param: im
-function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
+function ind = get_max_n_local_gradient_extrema_value_indexes(im, N)
 %  sortedValues = unique(im);               % Unique sorted values
 %  maxValues = sortedValues(end-(N-1):end); % Get the 5 largest values
 %  maxIndex = ismember(im, maxValues);      % Get a logical index of all values
@@ -325,27 +325,82 @@ function r = get_max_n_local_gradient_extrema_value_indexes(im, N)
     min_values = sorted_values(1:end-offset);
     maxima_index = ismember(gradient_im, [max_values; min_values]);
     [rows, cols] = find(maxima_index);
-    r = [rows cols];
+    ind = [rows cols];
     % cases:
     offset = floor((start_idx + end_idx)/2);
-    if (size(r, 1) > N)
-      % size(r, 1) > N -> we need less values -> inc start_idx, dec end_idx
+    if (size(ind, 1) > N)
+      % size(ind, 1) > N -> we need less values -> inc start_idx, dec end_idx
       start_idx = offset;
-    elseif (size(r, 1) < N)
-      % size(r, 1) < N -> we need more values -> dec start_idx, inc end_idx
+    elseif (size(ind, 1) < N)
+      % size(ind, 1) < N -> we need more values -> dec start_idx, inc end_idx
       end_idx = offset;
-    elseif (size(r, 1) == N)
-      % size(r, 1) == N -> done
+    elseif (size(ind, 1) == N)
+      % size(ind, 1) == N -> done
       break;
     endif
-    start_idx
-    end_idx
+    start_idx;
+    end_idx;
   until start_idx >= end_idx;
+endfunction
+
+
+%%
+% param: im
+function ind = get_max_n_gradient_indexes(im, N)
+  gradient_im = abs(gradient(im));
+  sorted_values = unique(imregionalmax(gradient_im).*gradient_im);
+
+  start_idx = 1;
+  end_idx = size(sorted_values, 1);
+  offset = 1;
+  do
+    max_values = sorted_values(end-offset:end);
+    maxima_index = ismember(gradient_im, max_values);
+    [rows, cols] = find(maxima_index);
+    ind = [rows cols];
+    if (size(ind, 1) > N)
+      break;
+    endif
+    ++offset;
+  until offset >= end_idx;
+endfunction
+
+function distances_calculated = image_pixel_euclidean_distance_n_nearest_all(ind, N, norm = false)
+  m(1) = 1;
+  distances_calculated = cell(size(ind, 1));
+  d = zeros(size(ind, 1));
+  for i = 1:size(ind, 1)
+    for j = 1:size(ind, 1)
+      d(j) = image_pixel_euclidean_distance(ind(i, 1), ind(j, 1), ind(i, 2), ind(j, 2));
+    endfor
+    if (norm)
+      m(i) = max(d);
+    endif
+    for k = 1:size(d, 2)
+      if (k <= N)
+        t(k) = d(k);
+      else
+        pos = find(ismember(t, min(t)));
+        if (t(pos(1)) < d(k))
+          t(pos) = 2;
+          t(k) = d(k);
+        endif
+      endif
+    endfor
+    t(find(ismember(t, 2))) = 0;
+    distances_calculated{i} = t';
+  endfor
+  if (max(m) != 0)
+    for k = 1:size(distances_calculated)
+      distances_calculated{k} = distances_calculated{k} / max(m);
+    endfor
+  endif
 endfunction
 
 %%
 % params: ind, norm = false, filter = @(d) false
 function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d) false)
+  m(1) = 1;
   for i = 1:size(ind, 1)
     for j = 1:size(ind, 1)
       d(j) = image_pixel_euclidean_distance(ind(i, 1), ind(j, 1), ind(i, 2), ind(j, 2));
@@ -360,7 +415,7 @@ function p = image_pixel_euclidean_distance_all(ind, norm = false, filter = @(d)
     endfor
     p{i} = d';
   endfor
-  if (norm)
+  if (max(m) != 0)
     for k = 1:size(p)
       p{k} = p{k} / max(m);
     endfor
