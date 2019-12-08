@@ -67,31 +67,51 @@ function [r_index, M] = max_N_values_index(im, N_limit)
   endfor
 endfunction
 
-function image_segmentation_fixed_graph_series(C, l, b, J)
+function image_segmentation_fixed_graph_series(C, l, b, img, series, J)
   [chi, lambda] = generate_fixed_graph(l, b);
 endfunction
 
-function image_segmentation_series(C, N_limit, J)
+function image_segmentation_series(C, N_limit, img, series, J)
   # 
 endfunction
 
-function difference_series(C, N_limit, J)
-  diffC = C{2} - C{1};
-  ind = sort_indexes(max_N_values_index(diffC, N_limit));
+function local_analysis(C, C0, N_limit, img, series, J, type)
+  image_type = "png";
+  analysis_name = [img "-S" series "-T" type "-J" num2str(J)];
+  figure("visible", "off");
+
+  ind = sort_indexes(max_N_values_index(C0, N_limit));
   dist = image_pixel_euclidean_distance_all(ind, true);
-  L = laplace_from_distances(d);
+  L = laplace_from_distances(dist);
+
+  disp("Calculating eigen values");
   [chi, lambda] = eig(L, "vector");
 
+  plot(lambda);
+  print(["-d" image_type], ["~/lambda-" analysis_name]);
+
   # we are still using the g and h function from the original paper
+  disp("Calculating wavelet T matrix");
   T = wavelets(@g, @h, chi, lambda, J);
   ww = wavelets_for_image_series(C, T, ind);
 
-  print_wavelet_series(ww, "png", true);
+  imagesc(index_to_graph(ind, size(C{1}, 1), size(C{1}, 2)));
+  print(["-d" image_type], ["~/graph-" analysis_name]);
+
+  ignore_h_kernel = false;
+  print_wavelet_image_compare_series(ww, analysis_name, image_type, ignore_h_kernel);
+
+  print_wavelet_series(ww, analysis_name, image_type, ignore_h_kernel);
 endfunction
 
-function gradient_series(C, N_limit, J)
+function difference_series(C, N_limit, img, series, J)
+  diffC = C{2} - C{1};
+  local_analysis(C, diffC, N_limit, img, series, J, "diff");
+endfunction
+
+function gradient_series(C, N_limit, img, series, J)
   gradC = gradient(C{1});
-  ind = max_N_values_index(gradC, N_limit);
+  local_analysis(C, gradC, N_limit, img, series, J, "grad");
 endfunction
 
 function [chi_r, lambda_r] = generate_fixed_graph(l, b)
@@ -112,87 +132,87 @@ function [chi_r, lambda_r] = generate_fixed_graph(l, b)
   lambda_r = lambda;
 endfunction
 
-function run_all_test_series_for(C, J)
+function run_all_test_series_for(C, img, series, J)
   N_limit = 1000;
   l = 40; b = 25; # to keep consistent with N_limit = 1000.
 
   disp("Starting segmentation with fixed graph test");
-  image_segmentation_fixed_graph_series(C, l, b, J);
+  image_segmentation_fixed_graph_series(C, l, b, img, series, J);
 
   disp("Starting segmentation test");
-  image_segmentation_series(C, N_limit, J);
+  image_segmentation_series(C, N_limit, img, series, J);
 
   disp("Starting difference test");
-  difference_series(C, N_limit, J);
+  difference_series(C, N_limit, img, series, J);
 
   disp("Starting gradient test");
-  gradient_series(C, N_limit, J);
+  gradient_series(C, N_limit, img, series, J);
 endfunction
 
-function run_moon_test_series_for(impath, J)
-  disp("Starting moon tests");
-  run_all_test_series_for(read_all_images(impath), J);
-  disp("Moon series done");
+function run_moon_test_series_for(impath, img, series, J)
+  disp(["Starting moon tests. Image: " img ", Series: " series ", J: " num2str(J)]);
+  run_all_test_series_for(read_all_images([impath "/" img "/" series "/"]), img, series, J);
+  disp("Done with this series.");
 endfunction
 
-function run_sun_test_series_for(impat, J)
-  disp("Starting sun tests");
-  run_all_test_series_for(read_all_images_raw(impath), J);
-  disp("Sun series done");
+function run_sun_test_series_for(impath, img, series, J)
+  disp(["Starting sun tests. Image: " img ", Series: " series ", J: " num2str(J)]);
+  run_all_test_series_for(read_all_images_raw([impath "/" img "/" series "/"]), img, series, J);
+  disp("Done with this series.");
 endfunction
 
-function run_sun_series(impath)
+function run_sun_series(impath, img)
   J = [10, 30];
   for j = 1:size(J, 2)
-    run_sun_test_series_for([impath "/sun-1/"], J(j));
-    run_sun_test_series_for([impath "/sun-2/"], J(j));
-    run_sun_test_series_for([impath "/sun-3/"], J(j));
-    run_sun_test_series_for([impath "/sun-4/"], J(j));
-    run_sun_test_series_for([impath "/sun-5/"], J(j));
-    run_sun_test_series_for([impath "/sun-6/"], J(j));
+    run_sun_test_series_for(impath, img, "sun-1", J(j));
+    #run_sun_test_series_for(impath, img, "sun-2", J(j));
+    #run_sun_test_series_for(impath, img, "sun-3", J(j));
+    #run_sun_test_series_for(impath, img, "sun-4", J(j));
+    #run_sun_test_series_for(impath, img, "sun-5", J(j));
+    #run_sun_test_series_for(impath, img, "sun-6", J(j));
   endfor
 endfunction
 
-function run_moon_series(impath)
+function run_moon_series(impath, img)
   J = [10, 30];
   for j = 1:size(J, 2)
-    run_moon_test_series_for([impath "/moon-1/"], J(j));
-    #run_moon_test_series_for([impath "/moon-2/"], J(j));
-    #run_moon_test_series_for([impath "/moon-3/"], J(j));
-    #run_moon_test_series_for([impath "/moon-4/"], J(j));
-    #run_moon_test_series_for([impath "/moon-5/"], J(j));
+    run_moon_test_series_for(impath, img, "moon-1", J(j));
+    #run_moon_test_series_for(impath, img, "moon-2", J(j));
+    #run_moon_test_series_for(impath, img, "moon-3", J(j));
+    #run_moon_test_series_for(impath, img, "moon-4", J(j));
+    #run_moon_test_series_for(impath, img, "moon-5", J(j));
   endfor
 endfunction
 
 function run_all_moon_series()
-  run_moon_series("~/data/20180928/DSC_0396");
+  run_moon_series("~/data/20180928", "DSC_0396");
 
-  run_moon_series("~/data/20190125/DSC_0073");
-  run_moon_series("~/data/20190125/DSC_0074");
-  run_moon_series("~/data/20190125/DSC_0075");
-  run_moon_series("~/data/20190125/DSC_0076");
-  run_moon_series("~/data/20190125/DSC_0077");
-  run_moon_series("~/data/20190125/DSC_0078");
-  run_moon_series("~/data/20190125/DSC_0079");
-  run_moon_series("~/data/20190125/DSC_0080");
-  run_moon_series("~/data/20190125/DSC_0081");
-  run_moon_series("~/data/20190125/DSC_0082");
+  run_moon_series("~/data/20190125", "DSC_0073");
+  run_moon_series("~/data/20190125", "DSC_0074");
+  run_moon_series("~/data/20190125", "DSC_0075");
+  run_moon_series("~/data/20190125", "DSC_0076");
+  run_moon_series("~/data/20190125", "DSC_0077");
+  run_moon_series("~/data/20190125", "DSC_0078");
+  run_moon_series("~/data/20190125", "DSC_0079");
+  run_moon_series("~/data/20190125", "DSC_0080");
+  run_moon_series("~/data/20190125", "DSC_0081");
+  run_moon_series("~/data/20190125", "DSC_0082");
 
-  run_moon_series("~/data/20190219/DSC_0083");
-  run_moon_series("~/data/20190219/DSC_0084");
-  run_moon_series("~/data/20190219/DSC_0085");
+  run_moon_series("~/data/20190219", "DSC_0083");
+  run_moon_series("~/data/20190219", "DSC_0084");
+  run_moon_series("~/data/20190219", "DSC_0085");
 endfunction
 
 function run_all_sun_series()
-  run_sun_series("~/data/20190626/ASICAP_2019-06-26_18_49_10_643");
-  run_sun_series("~/data/20190626/ASICAP_2019-06-26_18_50_55_924");
-  run_sun_series("~/data/20190626/ASICAP_2019-06-26_18_51_30_884");
+  run_sun_series("~/data/20190626", "ASICAP_2019-06-26_18_49_10_643");
+  run_sun_series("~/data/20190626", "ASICAP_2019-06-26_18_50_55_924");
+  run_sun_series("~/data/20190626", "ASICAP_2019-06-26_18_51_30_884");
 
-  run_sun_series("~/data/20190629/ASICAP_2019-06-29_07_21_37_333");
-  run_sun_series("~/data/20190629/ASICAP_2019-06-29_07_22_58_258");
-  run_sun_series("~/data/20190629/ASICAP_2019-06-29_07_36_10_397");
-  run_sun_series("~/data/20190629/ASICAP_2019-06-29_07_36_25_606");
-  run_sun_series("~/data/20190629/ASICAP_2019-06-29_07_38_05_483");
+  run_sun_series("~/data/20190629", "ASICAP_2019-06-29_07_21_37_333");
+  run_sun_series("~/data/20190629", "ASICAP_2019-06-29_07_22_58_258");
+  run_sun_series("~/data/20190629", "ASICAP_2019-06-29_07_36_10_397");
+  run_sun_series("~/data/20190629", "ASICAP_2019-06-29_07_36_25_606");
+  run_sun_series("~/data/20190629", "ASICAP_2019-06-29_07_38_05_483");
 endfunction
 
 function run_all_series()

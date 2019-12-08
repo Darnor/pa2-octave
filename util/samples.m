@@ -27,15 +27,11 @@ endfunction
 
 function OO = wavelet_image_series(w, ignore_h_kernel = true)
   for j = 1:size(w, 2)
-    OO{j} = wavelet_image(w{j});
+    OO{j} = wavelet_image(w{j}, ignore_h_kernel);
   endfor
 endfunction
 
-function print_wavelet_image_compare(ww, w_num, type, ignore_h_kernel = true)
-  y_max = 0;
-  y_min = 0;
-  l = 48;
-  b = 27;
+function print_wavelet_image_compare(ww, w_num, prefix, type, ignore_h_kernel = true)
   OO = wavelet_image_series(ww, ignore_h_kernel);
   R = OO{1}(w_num, :);
   for j = 2:size(OO, 2)
@@ -43,16 +39,27 @@ function print_wavelet_image_compare(ww, w_num, type, ignore_h_kernel = true)
   endfor
   y_max = max(R(:));
   y_min = min(R(:));
-  print_wavelets(R, y_min, y_max, type, ["~/wavelet_compare_" num2str(w_num)]);
+  print_wavelets(R, y_min, y_max, type, ["~/compare-" prefix "-" num2str(w_num)]);
+endfunction
+
+function print_wavelet_image_compare_series(ww, prefix, type, ignore_h_kernel = true)
+  N = size(ww{1}, 2);
+  if (ignore_h_kernel)
+    --N;
+  endif
+  for i = 1:N
+    print_wavelet_image_compare(ww, i, prefix, type, ignore_h_kernel)
+  endfor
 endfunction
 
 function print_wavelets(O, y_min, y_max, type, file_name = "~/abs_value")
+  figure ("visible", "off");
   imagesc(O, [y_min, y_max]);
   colorbar();
   print(["-d" type], [file_name "." type]);
 endfunction
 
-function print_wavelet_series(ww, type, ignore_h_kernel = true)
+function print_wavelet_series(ww, prefix, type, ignore_h_kernel = true)
   y_max = 0;
   y_min = 0;
   OO = wavelet_image_series(ww, ignore_h_kernel);
@@ -61,20 +68,20 @@ function print_wavelet_series(ww, type, ignore_h_kernel = true)
     y_min = min(min(OO{j}(:), y_min));
   endfor
   for j = 1:size(OO, 2)
-    print_wavelets(OO{j}, y_min, y_max, type, ["~/abs_value_" num2str(j)]);
+    print_wavelets(OO{j}, y_min, y_max, type, ["~/" prefix "-" num2str(j)]);
   endfor
 endfunction
 
 function sample_trimmed_images(C, T, l, b, offset, ignore_h_kernel = true)
   ww = sample_image_series(C, T, @(im) to_vector(cut_image(im, l, b, offset), l, b));
   type = "png";
-  print_wavelet_series(ww, type);
+  print_wavelet_series(ww, "abs_value_", type);
   N = size(ww{1}, 2);
   if (ignore_h_kernel)
     --N;
   endif
   for i = 1:N
-    print_wavelet_image_compare(ww, i, type)
+    print_wavelet_image_compare(ww, i, "wavelet_compare_", type)
   endfor
   OO = wavelet_image_series(ww, ignore_h_kernel);
   % calculate the standard deviation of all wavelets for each image
