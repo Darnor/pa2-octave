@@ -1,0 +1,10 @@
+This document describes the different tests done for every series
+=================================================================
+
+Parameters:
+- Psi Wavelet-Families: J
+- Number of Frames: N
+- Frames between: M
+- Starttime: 0s (sun), 10s (moon)
+
+
