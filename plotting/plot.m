@@ -1,6 +1,7 @@
 source("util/util.m")
 
 %% set graphic toolkit
+% graphics_toolkit fltk
 graphics_toolkit gnuplot
 
 %% Helpers
