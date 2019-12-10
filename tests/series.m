@@ -90,6 +90,7 @@ function [chi_r, lambda_r] = generate_fixed_eight_point_graph(lparam, bparam)
   if (isempty(L8P) || needs_update)
     disp("Generating Laplace matrix")
     L8P = laplace_eight_point(l, b);
+    %L8P = laplace_from_distances_fully_connected(l, b);
   endif
 
   if (isempty(chi) || isempty(lambda) || needs_update)
@@ -212,21 +213,21 @@ function dist = nearest_direction_distances(ind)
         continue;
       endif
       if (size(indNE, 1) > 0 && ind(j, 1) == indNE(1, 1) && ind(j, 2) == indNE(1, 2))
-        d(j) = 1;distNE;
+        d(j) = distNE;
       elseif (size(indN, 1) > 0 && ind(j, 1) == indN(1, 1) && ind(j, 2) == indN(1, 2))
-        d(j) = 1;distN;
+        d(j) = distN;
       elseif (size(indNW, 1) > 0 && ind(j, 1) == indNW(1, 1) && ind(j, 2) == indNW(1, 2))
-        d(j) = 1;distNW;
+        d(j) = distNW;
       elseif (size(indW, 1) > 0 && ind(j, 1) == indW(1, 1) && ind(j, 2) == indW(1, 2))
-        d(j) = 1;distW;
+        d(j) = distW;
       elseif (size(indSW, 1) > 0 && ind(j, 1) == indSW(1, 1) && ind(j, 2) == indSW(1, 2))
-        d(j) = 1;distSW;
+        d(j) = distSW;
       elseif (size(indS, 1) > 0 && ind(j, 1) == indS(1, 1) && ind(j, 2) == indS(1, 2))
-        d(j) = 1;distS;
+        d(j) = distS;
       elseif (size(indSE, 1) > 0 && ind(j, 1) == indSE(1, 1) && ind(j, 2) == indSE(1, 2))
-        d(j) = 1;distSE;
+        d(j) = distSE;
       elseif (size(indE, 1) > 0 && ind(j, 1) == indE(1, 1) && ind(j, 2) == indE(1, 2))
-        d(j) = 1;distE;
+        d(j) = distE;
       else
         d(j) = 0;
       endif
@@ -236,8 +237,11 @@ function dist = nearest_direction_distances(ind)
 endfunction
 
 function [chi, lambda] = eig_from_index(ind)
-  %dist = image_pixel_euclidean_distance_all(ind, true);
-  dist = nearest_direction_distances(ind);
+  dist = image_pixel_euclidean_distance_all(ind, true);
+
+  % this is function is just way to slow currently
+  %dist = nearest_direction_distances(ind);
+
   disp("Done calculating distances");
   L = laplace_from_distances(dist);
   [chi, lambda] = eig(L, "vector");
@@ -270,20 +274,20 @@ function run_analysis(chi, lambda, J, C, ind, img, series, type)
 
   figure("visible", "off");
   plot(lambda);
-  print(["-d" image_type], ["~/lambda-" analysis_name]);
+  print(["-d" image_type], ["~/ownCloud/pa2data/" series "/lambda-" analysis_name]);
 
   % we are still using the g and h function from the original paper
   disp("Calculating wavelet T matrix");
   T = wavelets(@g, @h, chi, lambda, J);
   ww = wavelets_for_image_series(C, T, ind);
 
-  imagesc(index_to_graph(ind, size(C{1}, 2), size(C{1}, 1)));
-  print(["-d" image_type], ["~/graph-" analysis_name]);
+  imagesc(index_to_graph(ind, size(C{1}, 1), size(C{1}, 2)));
+  print(["-d" image_type], ["~/ownCloud/pa2data/" series "/graph-" analysis_name]);
 
   ignore_h_kernel = true;
-  print_wavelet_image_compare_series(ww, analysis_name, image_type, ignore_h_kernel);
+  print_wavelet_image_compare_series(ww, ["~/ownCloud/pa2data/" series "/"], analysis_name, image_type, ignore_h_kernel);
 
-  print_wavelet_series(ww, analysis_name, image_type, ignore_h_kernel);
+  print_wavelet_series(ww, ["~/ownCloud/pa2data/" series "/"], analysis_name, image_type, ignore_h_kernel);
 endfunction
 
 function run_analysis_for_all_J(chi, lambda, J, C, ind, img, series, type)
@@ -313,7 +317,7 @@ function image_segmentation_series(C, N_limit, img, series, J)
 endfunction
 
 function difference_series(C, N_limit, img, series, J)
-  local_analysis(C, dC{2} - C{1}, N_limit, img, series, J, "diff");
+  local_analysis(C, C{2} - C{1}, N_limit, img, series, J, "diff");
 endfunction
 
 function gradient_series(C, N_limit, img, series, J)
@@ -354,20 +358,20 @@ endfunction
 function run_sun_series(impath, img)
   J = [10, 30];
   run_sun_test_series_for(impath, img, "sun-1", J);
-  %run_sun_test_series_for(impath, img, "sun-2", J);
-  %run_sun_test_series_for(impath, img, "sun-3", J);
-  %run_sun_test_series_for(impath, img, "sun-4", J);
-  %run_sun_test_series_for(impath, img, "sun-5", J);
-  %run_sun_test_series_for(impath, img, "sun-6", J);
+  run_sun_test_series_for(impath, img, "sun-2", J);
+  run_sun_test_series_for(impath, img, "sun-3", J);
+  run_sun_test_series_for(impath, img, "sun-4", J);
+  run_sun_test_series_for(impath, img, "sun-5", J);
+  run_sun_test_series_for(impath, img, "sun-6", J);
 endfunction
 
 function run_moon_series(impath, img)
   J = [10, 30];
   run_moon_test_series_for(impath, img, "moon-1", J);
-  %run_moon_test_series_for(impath, img, "moon-2", J);
-  %run_moon_test_series_for(impath, img, "moon-3", J);
-  %run_moon_test_series_for(impath, img, "moon-4", J);
-  %run_moon_test_series_for(impath, img, "moon-5", J);
+  run_moon_test_series_for(impath, img, "moon-2", J);
+  run_moon_test_series_for(impath, img, "moon-3", J);
+  run_moon_test_series_for(impath, img, "moon-4", J);
+  run_moon_test_series_for(impath, img, "moon-5", J);
 endfunction
 
 function run_all_moon_series()

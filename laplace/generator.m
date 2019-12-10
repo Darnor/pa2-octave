@@ -246,8 +246,8 @@ endfunction
 % params: distances, norm = false
 function [L, D, A] = laplace_from_distances(distances, norm = false)
   A(1,1) = 0;
-  for i = 1:size(distances, 2)
-    for j = 1:size(distances{i}, 2)
+  for i = 1:max(size(distances))
+    for j = 1:max(size(distances{i}))
       A(i, j) = distances{i}(j);
       A(j, i) = distances{i}(j);
     endfor

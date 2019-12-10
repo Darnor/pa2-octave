@@ -368,7 +368,7 @@ endfunction
 function distances_calculated = image_pixel_euclidean_distance_n_nearest_all(ind, N, norm = false)
   m(1) = 1;
   distances_calculated = cell(size(ind, 1));
-  d = zeros(size(ind, 1));
+  d = zeros(size(ind, 1), 1);
   for i = 1:size(ind, 1)
     for j = 1:size(ind, 1)
       d(j) = image_pixel_euclidean_distance(ind(i, 1), ind(j, 1), ind(i, 2), ind(j, 2));
