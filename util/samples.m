@@ -40,9 +40,19 @@ function print_wavelet_image_compare(ww, w_num, base_dir, prefix, type, ignore_h
   y_max = max(R(:));
   y_min = min(R(:));
   file_name = ["compare-" prefix "-" num2str(w_num)];
-  print_wavelets(R, y_min, y_max, type, [base_dir file_name]);
-  compare_var = std(R);
+  %["Wavelet-Koeffizenten: {/Symbol F}_{" num2str(w_num) "}(V_{Einzelbild})"]
+  print_wavelets(R, y_min, y_max, type, [base_dir file_name], "Knoten: V", "Einzelbilder", ["Vergleich der Wavelet-Koeffizienten {/Symbol F}_{" num2str(w_num) "}-Wavelets aller Einzelbilder der Serie"]);
+  compare_var = var(R);
   plot(compare_var);
+  title(["Varianz der Wavelet-Koeffizienten des {/Symbol F}_{" num2str(w_num) "}-Wavelets aller Einzelbilder der Serie"]);
+  xlabel("Knoten: V");
+  ylabel(["Varianz: {/Symbol s}^2({/Symbol F}_{" num2str(w_num) "}(V_{Einzelbild}))"]);
+  print(["-d" type], [base_dir "var-" file_name "." type]);
+  compare_std = std(R);
+  plot(compare_std);
+  title(["Standardabweichung der Wavelet-Koeffizienten des {/Symbol F}_{" num2str(w_num) "}-Wavelets aller Einzelbilder der Serie"]);
+  xlabel("Knoten: V");
+  ylabel(["Standardabweichung {/Symbol s}({/Symbol F}_{" num2str(w_num) "}(V_{Einzelbild}))"]);
   print(["-d" type], [base_dir "std-" file_name "." type]);
 endfunction
 
@@ -56,9 +66,12 @@ function print_wavelet_image_compare_series(ww, prefix, type, ignore_h_kernel = 
   endfor
 endfunction
 
-function print_wavelets(O, y_min, y_max, type, file_name = "~/abs_value")
+function print_wavelets(O, y_min, y_max, type, file_name = "~/abs_value", xl = "x", yl = "y", tt = "Wavelets")
   figure ("visible", "off");
   imagesc(O, [y_min, y_max]);
+  title(tt);
+  xlabel(xl);
+  ylabel(yl);
   colorbar();
   print(["-d" type], [file_name "." type]);
 endfunction
@@ -72,7 +85,7 @@ function print_wavelet_series(ww, base_dir, prefix, type, ignore_h_kernel = true
     y_min = min(min(OO{j}(:), y_min));
   endfor
   for j = 1:size(OO, 2)
-    print_wavelets(OO{j}, y_min, y_max, type, [base_dir prefix "-" num2str(j)]);
+    print_wavelets(OO{j}, y_min, y_max, type, [base_dir prefix "-" num2str(j)], "Knoten: V", "Wavelet-Skalierung: J", "Wavelet-Koeffzienten aller {/Symbol F}_{j}-Wavelets eines Einzelbildes");
   endfor
 endfunction
 

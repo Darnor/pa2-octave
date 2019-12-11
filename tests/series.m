@@ -274,6 +274,9 @@ function run_analysis(chi, lambda, J, C, ind, img, series, type)
 
   figure("visible", "off");
   plot(lambda);
+  title(["Eigenwerte {/Symbol l} des Einzelbildgraphen der Serie: " series]);
+  xlabel("{/Symbol l}");
+  ylabel("{/Symbol l}(v_i)");
   print(["-d" image_type], ["~/ownCloud/pa2data/" series "/lambda-" analysis_name]);
 
   % we are still using the g and h function from the original paper
@@ -282,6 +285,9 @@ function run_analysis(chi, lambda, J, C, ind, img, series, type)
   ww = wavelets_for_image_series(C, T, ind);
 
   imagesc(index_to_graph(ind, size(C{1}, 1), size(C{1}, 2)));
+  title(["Graph G eines Einzelbildes der Serie: " series]);
+  xlabel("x");
+  ylabel("y");
   print(["-d" image_type], ["~/ownCloud/pa2data/" series "/graph-" analysis_name]);
 
   ignore_h_kernel = true;
