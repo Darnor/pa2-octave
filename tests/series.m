@@ -325,7 +325,7 @@ function difference_series(C, N_limit, img, series, J)
   D = abs(C{2} - C{1});
   analysis_name = [img "-S" series "-Tdiff"];
   imagesc(D);
-  title(["Absolute Differenz des ersten Einzelbildes aus " img " und der Serie " series]);
+  title(["Absolute Differenz des ersten Einzelbildes der " series " Serie"]);
   xlabel("x");
   ylabel("y");
   print("-dpng", ["~/switchdrive/pa2data/" series "/C0-" analysis_name]);
@@ -336,7 +336,7 @@ function gradient_series(C, N_limit, img, series, J)
   D = abs(gradient(C{1}));
   analysis_name = [img "-S" series "-Tgrad"];
   imagesc(D);
-  title(["Absoluter Gradient des ersten Einzelbildes aus " img " und der Serie " series]);
+  title(["Absoluter Gradient des ersten Einzelbildes der " series " Serie"]);
   xlabel("x");
   ylabel("y");
   print("-dpng", ["~/switchdrive/pa2data/" series "/C0-" analysis_name]);
