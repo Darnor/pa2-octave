@@ -272,7 +272,6 @@ function run_analysis(chi, lambda, J, C, ind, img, series, type)
   analysis_name = [img "-S" series "-T" type "-J" num2str(J)];
   image_type = "png";
 
-  figure("visible", "off");
   plot(lambda);
   title(["Eigenwerte {/Symbol l} des Einzelbildgraphen der Serie: " series]);
   xlabel("{/Symbol l}");
@@ -323,11 +322,25 @@ function image_segmentation_series(C, N_limit, img, series, J)
 endfunction
 
 function difference_series(C, N_limit, img, series, J)
-  local_analysis(C, C{2} - C{1}, N_limit, img, series, J, "diff");
+  D = abs(C{2} - C{1});
+  analysis_name = [img "-S" series "-Tdiff"];
+  imagesc(D);
+  title(["Absolute Differenz des ersten Einzelbildes aus " img " und der Serie " series]);
+  xlabel("x");
+  ylabel("y");
+  print("-dpng", ["~/switchdrive/pa2data/" series "/C0-" analysis_name]);
+  local_analysis(C, D, N_limit, img, series, J, "diff");
 endfunction
 
 function gradient_series(C, N_limit, img, series, J)
-  local_analysis(C, gradient(C{1}), N_limit, img, series, J, "grad");
+  D = abs(gradient(C{1}));
+  analysis_name = [img "-S" series "-Tgrad"];
+  imagesc(D);
+  title(["Absoluter Gradient des ersten Einzelbildes aus " img " und der Serie " series]);
+  xlabel("x");
+  ylabel("y");
+  print("-dpng", ["~/switchdrive/pa2data/" series "/C0-" analysis_name]);
+  local_analysis(C, D, N_limit, img, series, J, "grad");
 endfunction
 % Test series functions end
 %%
@@ -335,6 +348,8 @@ endfunction
 function run_all_test_series_for(C, img, series, J)
   N_limit = 1000;
   l = 40; b = 25; % to keep consistent with N_limit = 1000.
+
+  figure("visible", "off");
 
   disp("Starting segmentation with fixed graph test");
   image_segmentation_fixed_graph_series(C, l, b, img, series, J);
