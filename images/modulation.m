@@ -359,6 +359,76 @@ function d = image_pixel_euclidean_distance(x1, x2, y1, y2)
   endif
 endfunction
 
+function G = index_to_graph_enhanced(ind, l, b)
+  G = zeros(l, b);
+  for i = 1:size(ind, 1)
+    G(ind(i, 1), ind(i, 2)) = 1;
+    if (ind(i, 1)+1 <= l)
+      G(ind(i, 1)+1, ind(i, 2)) = 1;
+      if (ind(i, 2)+1 <= b)
+        G(ind(i, 1)+1, ind(i, 2)+1) = 1;
+      endif
+      if (ind(i, 2)-1 > 0)
+        G(ind(i, 1)+1, ind(i, 2)-1) = 1;
+      endif
+    endif
+    if (ind(i, 1)-1 > 0)
+      G(ind(i, 1)-1, ind(i, 2)) = 1;
+      if (ind(i, 2)+1 <= b)
+        G(ind(i, 1)-1, ind(i, 2)+1) = 1;
+      endif
+      if (ind(i, 2)-1 > 0)
+        G(ind(i, 1)-1, ind(i, 2)-1) = 1;
+      endif
+    endif
+    if (ind(i, 2)+1 <= b)
+      G(ind(i, 1), ind(i, 2)+1) = 1;
+    endif
+    if (ind(i, 2)-1 > 0)
+      G(ind(i, 1), ind(i, 2)-1) = 1;
+    endif
+    if (ind(i, 1)+2 <= l)
+      G(ind(i, 1)+2, ind(i, 2)) = 1;
+      if (ind(i, 2)+2 <= b)
+        G(ind(i, 1)+2, ind(i, 2)+2) = 1;
+      endif
+      if (ind(i, 2)-2 > 0)
+        G(ind(i, 1)+2, ind(i, 2)-2) = 1;
+      endif
+      if (ind(i, 2)+1 <= b)
+        G(ind(i, 1)+2, ind(i, 2)+1) = 1;
+      endif
+      if (ind(i, 2)-1 > 0)
+        G(ind(i, 1)+2, ind(i, 2)-1) = 1;
+      endif
+    endif
+    if (ind(i, 1)-2 > 0)
+      G(ind(i, 1)-2, ind(i, 2)) = 1;
+      G(ind(i, 1)-2, ind(i, 2)-2) = 1;
+      G(ind(i, 1)-2, ind(i, 2)+2) = 1;
+      G(ind(i, 1)-2, ind(i, 2)-1) = 1;
+      G(ind(i, 1)-2, ind(i, 2)+1) = 1;
+    endif
+    if (ind(i, 2)+2 <= b)
+      G(ind(i, 1), ind(i, 2)+2) = 1;
+      if (ind(i, 1)-1 > 0)
+        G(ind(i, 1)-1, ind(i, 2)+2) = 1;
+      endif
+      if (ind(i, 1)+1 <= l)
+        G(ind(i, 1)+1, ind(i, 2)+2) = 1;
+      endif
+    endif
+    if (ind(i, 2)-2 > 0)
+      G(ind(i, 1), ind(i, 2)-2) = 1;
+      if (ind(i, 1)+1 <= l)
+        G(ind(i, 1)+1, ind(i, 2)-2) = 1;
+      endif
+      if (ind(i, 1)-1 > 0)
+        G(ind(i, 1)-1, ind(i, 2)-2) = 1;
+      endif
+    endif
+  endfor
+endfunction
 %%
 % params: ind, l, b
 function G = index_to_graph(ind, l, b)
